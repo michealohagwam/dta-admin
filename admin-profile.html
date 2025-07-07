@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DailyTask Academy - Admin Profile</title>
+    <link rel="stylesheet" href="css/admin-styles.css">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>DailyTask Academy</h2>
+        <nav>
+            <a href="admin-dashboard.html">Dashboard</a>
+            <a href="admin-users.html">Manage Users</a>
+            <a href="admin-tasks.html">Manage Tasks</a>
+            <a href="admin-withdrawals.html">Withdrawals</a>
+            <a href="admin-referrals.html">Referrals</a>
+            <a href="admin-upgrades.html">Upgrades</a>
+            <a href="admin-profile.html" class="active">Profile</a>
+            <a href="admin-settings.html">Settings</a>
+            <a href="admin-emails.html">Email Logs</a>
+            <a href="admin-pending-confirmations.html">Email Pending Confirmations</a>
+            <a href="admin-logout.html" class="active">Logout</a>
+        </nav>
+    </div>
+    <div class="main-content">
+        <h1>Admin Profile</h1>
+        <div class="form-container">
+            <h3>Update Profile</h3>
+            <form id="profile-form">
+                <input type="email" class="form-input" id="admin-email" placeholder="Email" required>
+                <input type="password" class="form-input" id="admin-password" placeholder="New Password">
+                <input type="text" class="form-input" id="admin-contact" placeholder="Contact Info">
+                <button type="submit" class="btn btn-primary">Update</button>
+            </form>
+            <div id="profile-notification" class="notification"></div>
+        </div>
+        <div class="form-container">
+            <h3>Invite New Admin</h3>
+            <form id="invite-form">
+                <input type="email" class="form-input" id="invite-email" placeholder="Email" required>
+                <button type="submit" class="btn btn-primary">Send Invite</button>
+            </form>
+            <div id="invite-notification" class="notification"></div>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Contact Info</th>
+                    </tr>
+                </thead>
+                <tbody id="admins-table"></tbody>
+            </table>
+        </div>
+    </div>
+    <script src="js/admin-scripts.js"></script>
+</body>
+</html>

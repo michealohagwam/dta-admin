@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DailyTask Academy - Site Settings</title>
+    <link rel="stylesheet" href="css/admin-styles.css">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>DailyTask Academy</h2>
+        <nav>
+            <a href="admin-dashboard.html">Dashboard</a>
+            <a href="admin-users.html">Manage Users</a>
+            <a href="admin-tasks.html">Manage Tasks</a>
+            <a href="admin-withdrawals.html">Withdrawals</a>
+            <a href="admin-referrals.html">Referrals</a>
+            <a href="admin-upgrades.html">Upgrades</a>
+            <a href="admin-profile.html">Profile</a>
+            <a href="admin-settings.html" class="active">Settings</a>
+            <a href="admin-emails.html">Email Logs</a>
+            <a href="admin-pending-confirmations.html">Email Pending Confirmations</a>
+            <a href="admin-logout.html" class="active">Logout</a>
+        </nav>
+    </div>
+    <div class="main-content">
+        <h1>Site Settings</h1>
+        <div class="form-container">
+            <form id="settings-form">
+                <div class="form-group">
+                    <label>Registration Fee per Level</label>
+                    <select id="reg-fee-level" class="form-select">
+                        <option value="1">Level 1</option>
+                        <option value="2">Level 2</option>
+                        <option value="3">Level 3</option>
+                        <option value="4">Level 4</option>
+                        <option value="5">Level 5</option>
+                        <option value="6">Level 6</option>
+                        <option value="7">Level 7</option>
+                        <option value="8">Level 8</option>
+                        <option value="9">Level 9</option>
+                        <option value="10">Level 10</option>
+                    </select>
+                    <input type="number" class="form-input" id="reg-fee-amount" placeholder="Registration Fee" required>
+                </div>
+                <div class="form-group">
+                    <label>Daily Task Reward</label>
+                    <input type="number" class="form-input" id="task-reward" placeholder="Task Reward" required>
+                </div>
+                <div class="form-group">
+                    <label>Referral Reward per Level</label>
+                    <select id="referral-reward-level" class="form-select">
+                        <option value="1">Level 1</option>
+                        <option value="2">Level 2</option>
+                        <option value="3">Level 3</option>
+                        <option value="4">Level 4</option>
+                        <option value="5">Level 5</option>
+                        <option value="6">Level 6</option>
+                        <option value="7">Level 7</option>
+                        <option value="8">Level 8</option>
+                        <option value="9">Level 9</option>
+                        <option value="10">Level 10</option>
+                    </select>
+                    <input type="number" class="form-input" id="referral-reward-amount" placeholder="Referral Reward" required>
+                </div>
+                <div class="form-group">
+                    <label>Withdrawal Minimum Threshold per Level</label>
+                    <select id="withdrawal-threshold-level" class="form-select">
+                        <option value="1">Level 1</option>
+                        <option value="2">Level 2</option>
+                        <option value="3">Level 3</option>
+                        <option value="4">Level 4</option>
+                        <option value="5">Level 5</option>
+                        <option value="6">Level 6</option>
+                        <option value="7">Level 7</option>
+                        <option value="8">Level 8</option>
+                        <option value="9">Level 9</option>
+                        <option value="10">Level 10</option>
+                    </select>
+                    <input type="number" class="form-input" id="withdrawal-threshold-amount" placeholder="Minimum Withdrawal" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Settings</button>
+            </form>
+            <div id="settings-notification" class="notification"></div>
+        </div>
+    </div>
+    <script src="js/admin-scripts.js"></script>
+</body>
+</html>

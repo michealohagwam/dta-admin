@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DailyTask Academy - Email Logs</title>
+    <link rel="stylesheet" href="css/admin-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body data-page="emails">
+    <div class="sidebar">
+        <h2>DailyTask Academy</h2>
+        <nav>
+            <a href="admin-dashboard.html">Dashboard</a>
+            <a href="admin-users.html">Manage Users</a>
+            <a href="admin-tasks.html">Manage Tasks</a>
+            <a href="admin-withdrawals.html">Withdrawals</a>
+            <a href="admin-referrals.html">Referrals</a>
+            <a href="admin-upgrades.html">Upgrades</a>
+            <a href="admin-profile.html">Profile</a>
+            <a href="admin-settings.html">Settings</a>
+            <a href="admin-emails.html" class="active">Email Logs</a>
+            <a href="admin-pending-confirmations.html">Email Pending Confirmations</a>
+            <a href="admin-logout.html">Logout</a>
+        </nav>
+    </div>
+    <div class="main-content">
+        <h1>Email Logs</h1>
+        <div id="email-notification" class="notification"></div>
+        <div class="filter-form">
+            <select id="filter-email-type" class="form-select">
+                <option value="">All Types</option>
+                <option value="welcome">Welcome</option>
+                <option value="withdrawal">Withdrawal</option>
+                <option value="task_reminder">Task Reminder</option>
+                <option value="upgrade">Upgrade</option>
+                <option value="bonus">Bonus</option>
+            </select>
+            <button class="btn btn-primary" onclick="filterEmails()">Filter</button>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Recipient</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody id="emails-table"></tbody>
+            </table>
+        </div>
+    </div>
+    <script src="js/admin-scripts.js"></script>
+</body>
+</html>

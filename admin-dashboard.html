@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DailyTask Academy - Admin Dashboard</title>
+    <link rel="stylesheet" href="/css/admin-styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body data-page="dashboard">
+    <div class="sidebar">
+        <h2>DailyTask Academy</h2>
+        <nav>
+            <a href="/admin/dashboard" class="active">Dashboard</a>
+            <a href="/dta/admin-users.html">Manage Users</a>
+            <a href="/dta/admin-tasks.html">Manage Tasks</a>
+            <a href="/dta/admin-withdrawals.html">Withdrawals</a>
+            <a href="/dta/admin-referrals.html">Referrals</a>
+            <a href="/dta/admin-upgrades.html">Upgrades</a>
+            <a href="/dta/admin-profile.html">Profile</a>
+            <a href="/dta/admin-settings.html">Settings</a>
+            <a href="/dta/admin-emails.html">Email Logs</a>
+            <a href="/dta/admin-pending-confirmations.html">Email Pending Confirmations</a>
+            <a href="/admin/logout">Logout</a>
+        </nav>
+    </div>
+    <div class="main-content">
+        <h1>Admin Dashboard</h1>
+        <div class="tiles-container">
+            <div class="tile">
+                <h3>Total Users</h3>
+                <p id="total-users">0</p>
+            </div>
+            <div class="tile">
+                <h3>Total Earnings</h3>
+                <p id="total-earnings">₦0</p>
+            </div>
+            <div class="tile">
+                <h3>Today's Tasks</h3>
+                <p id="task-completions">0</p>
+            </div>
+            <div class="tile">
+                <h3>Pending Withdrawals</h3>
+                <p id="pending-withdrawals">0</p>
+            </div>
+        </div>
+        <div class="charts">
+            <canvas id="taskChart"></canvas>
+        </div>
+        <div class="table-container">
+            <h2>Pending Withdrawal Requests</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="withdrawals-table"></tbody>
+            </table>
+        </div>
+        <div id="withdrawal-notification" class="notification"></div>
+    </div>
+    <script src="/js/admin-scripts.js"></script>
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+</body>
+</html>

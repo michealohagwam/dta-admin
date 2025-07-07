@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DailyTask Academy - Upgrade Requests</title>
+    <link rel="stylesheet" href="css/admin-styles.css">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>DailyTask Academy</h2>
+        <nav>
+            <a href="admin-dashboard.html">Dashboard</a>
+            <a href="admin-users.html">Manage Users</a>
+            <a href="admin-tasks.html">Manage Tasks</a>
+            <a href="admin-withdrawals.html">Withdrawals</a>
+            <a href="admin-referrals.html">Referrals</a>
+            <a href="admin-upgrades.html" class="active">Upgrades</a>
+            <a href="admin-profile.html">Profile</a>
+            <a href="admin-settings.html">Settings</a>
+            <a href="admin-emails.html">Email Logs</a>
+            <a href="admin-pending-confirmations.html">Email Pending Confirmations</a>
+            <a href="admin-logout.html" class="active">Logout</a>
+        </nav>
+    </div>
+    <div class="main-content">
+        <h1>Upgrade Requests</h1>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Level Requested</th>
+                        <th>Amount Paid</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="upgrades-table"></tbody>
+            </table>
+        </div>
+    </div>
+    <script src="js/admin-scripts.js"></script>
+</body>
+</html>

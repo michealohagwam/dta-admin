@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DailyTask Academy - Manage Tasks</title>
+    <link rel="stylesheet" href="css/admin-styles.css">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>DailyTask Academy</h2>
+        <nav>
+            <a href="admin-dashboard.html">Dashboard</a>
+            <a href="admin-users.html">Manage Users</a>
+            <a href="admin-tasks.html" class="active">Manage Tasks</a>
+            <a href="admin-withdrawals.html">Withdrawals</a>
+            <a href="admin-referrals.html">Referrals</a>
+            <a href="admin-upgrades.html">Upgrades</a>
+            <a href="admin-profile.html">Profile</a>
+            <a href="admin-settings.html">Settings</a>
+            <a href="admin-emails.html">Email Logs</a>
+            <a href="admin-pending-confirmations.html">Email Pending Confirmations</a>
+            <a href="admin-logout.html" class="active">Logout</a>
+        </nav>
+    </div>
+    <div class="main-content">
+        <h1>Manage Tasks</h1>
+        <div class="form-container">
+            <h3>Add New Task</h3>
+            <form id="task-form">
+                <input type="text" class="form-input" id="task-title" placeholder="Task Title" required>
+                <input type="url" class="form-input" id="task-link" placeholder="YouTube Video Link" required>
+                <textarea class="form-input" id="task-description" placeholder="Task Description" required></textarea>
+                <button type="submit" class="btn btn-primary">Add Task</button>
+                <button type="button" class="btn btn-success" onclick="sendNotification()">Send Notification</button>
+            </form>
+            <div id="task-notification" class="notification"></div>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Link</th>
+                        <th>Completions</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tasks-table"></tbody>
+            </table>
+        </div>
+    </div>
+    <script src="js/admin-scripts.js"></script>
+</body>
+</html>

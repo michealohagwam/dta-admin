@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DailyTask Academy - Admin Registration</title>
+    <link rel="stylesheet" href="css/admin-styles.css">
+</head>
+<body>
+    <div class="main-content">
+        <div class="form-container">
+            <img src="https://via.placeholder.com/100" alt="DailyTask Academy Logo" class="logo">
+            <h1>Create Admin Account</h1>
+            <p>Enter the invite token sent to your email to register.</p>
+            <form id="register-form">
+                <input type="text" class="form-input" id="invite-token" placeholder="Invite Token" required>
+                <input type="email" class="form-input" id="register-email" placeholder="Email" required>
+                <input type="password" class="form-input" id="register-password" placeholder="Password" required>
+                <input type="text" class="form-input" id="register-contact" placeholder="Contact Info" required>
+                <button type="submit" class="btn btn-primary">Create Account</button>
+            </form>
+            <div id="register-notification" class="notification"></div>
+        </div>
+    </div>
+    <script src="js/admin-scripts.js"></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DailyTask Academy - Withdrawals Management</title>
+    <link rel="stylesheet" href="css/admin-styles.css">
+    <script src="https://unpkg.com/papaparse@latest/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>DailyTask Academy</h2>
+        <nav>
+            <a href="admin-dashboard.html">Dashboard</a>
+            <a href="admin-users.html">Manage Users</a>
+            <a href="admin-tasks.html">Manage Tasks</a>
+            <a href="admin-withdrawals.html" class="active">Withdrawals</a>
+            <a href="admin-referrals.html">Referrals</a>
+            <a href="admin-upgrades.html">Upgrades</a>
+            <a href="admin-profile.html">Profile</a>
+            <a href="admin-settings.html">Settings</a>
+            <a href="admin-emails.html">Email Logs</a>
+            <a href="admin-pending-confirmations.html">Email Pending Confirmations</a>
+            <a href="admin-logout.html" class="active">Logout</a>
+        </nav>
+    </div>
+    <div class="main-content">
+        <h1>Withdrawals Management</h1>
+        <button class="btn btn-primary" onclick="exportToCSV()">Export to CSV</button>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="withdrawals-table"></tbody>
+            </table>
+        </div>
+        <div id="user-details-modal" class="modal">
+            <div class="modal-content">
+                <h3>User Details</h3>
+                <p><strong>Name:</strong> <span id="modal-user-name"></span></p>
+                <p><strong>Invites:</strong> <span id="modal-user-invites"></span></p>
+                <p><strong>Tasks Completed:</strong> <span id="modal-user-tasks"></span></p>
+                <button class="btn btn-primary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/admin-scripts.js"></script>
+</body>
+</html>
