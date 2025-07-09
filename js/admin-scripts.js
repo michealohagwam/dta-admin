@@ -1,12 +1,54 @@
-// Base URL for API requests
-const API_BASE_URL = 'http://localhost:5000';
+// Admin script.js
+const API_BASE_URL = 'https://dta-backend-clean.onrender.com';
+const socket = io(API_BASE_URL, {
+    withCredentials: true,
+    transports: ['websocket', 'polling']
+});
 
-// Helper function to retrieve the admin JWT token from local storage
-function getAdminToken() {
-    return localStorage.getItem('token');
+// Utility function for fetch with retry
+async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetch(url, options);
+            return response;
+        } catch (err) {
+            if (i === retries - 1) throw err;
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
 }
 
-// Initialize sidebar toggle (used on admin dashboard pages)
+// Get admin token from local storage
+function getAdminToken() {
+    return localStorage.getItem('adminToken');
+}
+
+// Initialize WebSocket for real-time updates
+function initWebSocket() {
+    socket.on('connect', () => console.log('Connected to WebSocket'));
+    socket.on('dashboard-update', (data) => {
+        const statsElement = document.getElementById('dashboard-stats');
+        if (statsElement) {
+            statsElement.innerHTML = `
+                <p>Total Users: ${data.totalUsers}</p>
+                <p>Total Earnings: ₦${data.totalEarnings.toLocaleString('en-NG')}</p>
+                <p>Total Tasks: ${data.totalTasks}</p>
+                <p>Pending Withdrawals: ${data.totalWithdrawals}</p>
+            `;
+        }
+    });
+    socket.on('notification', (data) => {
+        const notification = document.getElementById('admin-notification');
+        if (notification) {
+            notification.textContent = data.message;
+            notification.classList.add('success');
+            notification.style.display = 'block';
+            setTimeout(() => notification.style.display = 'none', 5000);
+        }
+    });
+}
+
+// Initialize sidebar toggle
 function initSidebarToggle() {
     const sidebarToggle = document.querySelector('.sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
@@ -15,7 +57,7 @@ function initSidebarToggle() {
     }
 }
 
-// Initialize user dropdown in the header (used on admin dashboard pages)
+// Initialize user dropdown
 function initUserDropdown() {
     const userDropdown = document.getElementById('user-dropdown');
     if (userDropdown) {
@@ -26,12 +68,12 @@ function initUserDropdown() {
     }
 }
 
-// Update admin information in the header and sidebar
+// Update admin info in header and sidebar
 async function updateAdminInfo() {
     const token = getAdminToken();
     if (!token) return;
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/profile`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/profile`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
@@ -50,17 +92,17 @@ async function updateAdminInfo() {
     }
 }
 
-// Admin Login Page initialization
-function initAdminLoginPage() {
-    const loginForm = document.getElementById('admin-login-form') || document.getElementById('login-form');
-    const notification = document.getElementById('admin-login-notification') || document.getElementById('login-notification');
+// Admin Login Page
+async function initAdminLoginPage() {
+    const loginForm = document.getElementById('admin-login-form');
+    const notification = document.getElementById('admin-login-notification');
     if (loginForm && notification) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = loginForm.querySelector('button');
             submitBtn.disabled = true;
-            let email = (document.getElementById('admin-email') || document.getElementById('login-email'))?.value.trim();
-            let password = (document.getElementById('admin-password') || document.getElementById('login-password'))?.value.trim();
+            const email = document.getElementById('admin-email')?.value.trim();
+            const password = document.getElementById('admin-password')?.value.trim();
             if (!email || !password) {
                 notification.textContent = 'Please fill all required fields';
                 notification.classList.add('error');
@@ -72,20 +114,20 @@ function initAdminLoginPage() {
                 return;
             }
             try {
-                const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
+                const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('adminToken', data.token);
                     notification.textContent = 'Login successful!';
                     notification.classList.add('success');
                     notification.style.display = 'block';
                     setTimeout(() => window.location.href = '/admin/dashboard.html', 2000);
                 } else {
-                    notification.textContent = data.message || 'Invalid email or password';
+                    notification.textContent = data.message || 'Invalid email orspecifically for the dta-admin frontend or password';
                     notification.classList.add('error');
                     notification.style.display = 'block';
                     setTimeout(() => {
@@ -104,23 +146,26 @@ function initAdminLoginPage() {
                 }, 3000);
             }
         });
-    } else {
-        console.error('Login form or notification element not found');
     }
 }
 
-// Fetch dashboard statistics
+// Dashboard Page
 async function fetchDashboardStats() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/dashboard-stats`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/dashboard-stats`, {
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
         if (response.ok) {
             const data = await response.json();
-            document.getElementById('total-users').textContent = data.totalUsers;
-            document.getElementById('total-earnings').textContent = `₦${data.totalEarnings.toLocaleString('en-NG')}`;
-            document.getElementById('task-completions').textContent = data.totalTasks;
-            document.getElementById('pending-withdrawals').textContent = data.totalWithdrawals;
+            const statsElement = document.getElementById('dashboard-stats');
+            if (statsElement) {
+                statsElement.innerHTML = `
+                    <p>Total Users: ${data.totalUsers}</p>
+                    <p>Total Earnings: ₦${data.totalEarnings.toLocaleString('en-NG')}</p>
+                    <p>Total Tasks: ${data.totalTasks}</p>
+                    <p>Pending Withdrawals: ${data.totalWithdrawals}</p>
+                `;
+            }
         } else {
             console.error('Failed to fetch dashboard stats:', await response.text());
         }
@@ -129,7 +174,6 @@ async function fetchDashboardStats() {
     }
 }
 
-// Render task completion chart using Chart.js
 function renderTaskChart() {
     const ctx = document.getElementById('taskChart')?.getContext('2d');
     if (ctx) {
@@ -139,7 +183,7 @@ function renderTaskChart() {
                 labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                 datasets: [{
                     label: 'Task Completions',
-                    data: [50, 60, 70, 80, 90, 100, 110], // Placeholder data
+                    data: [50, 60, 70, 80, 90, 100, 110],
                     borderColor: '#3498db',
                     fill: false
                 }]
@@ -152,30 +196,24 @@ function renderTaskChart() {
     }
 }
 
-// Admin Dashboard Page initialization
 function initAdminDashboardPage() {
     fetchDashboardStats();
     renderTaskChart();
 }
 
-// Fetch all users
+// Users Page
 async function fetchUsers() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/users`, {
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
-        if (response.ok) {
-            const users = await response.json();
-            return users;
-        }
-        return [];
+        return response.ok ? await response.json() : [];
     } catch (err) {
         console.error('Error fetching users:', err);
         return [];
     }
 }
 
-// Render users in the table
 function renderUsers(users) {
     const tableBody = document.getElementById('users-table');
     if (tableBody) {
@@ -206,7 +244,6 @@ function renderUsers(users) {
     }
 }
 
-// Filter users based on search and filters
 async function filterUsers() {
     const searchName = document.getElementById('search-name')?.value.toLowerCase() || '';
     const filterLevel = document.getElementById('filter-level')?.value || '';
@@ -221,10 +258,9 @@ async function filterUsers() {
     renderUsers(filteredUsers);
 }
 
-// Update user status
 async function updateUserStatus(userId, status) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/status`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/users/${userId}/status`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -251,11 +287,10 @@ async function updateUserStatus(userId, status) {
     }
 }
 
-// Delete user
 async function deleteUser(id) {
     if (confirm('Are you sure you want to delete this user?')) {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/admin/users/${id}`, {
+            const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/users/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${getAdminToken()}` }
             });
@@ -279,11 +314,10 @@ async function deleteUser(id) {
     }
 }
 
-// Reset user password
 async function resetPassword(id) {
     if (confirm('Reset password for this user? A new password will be sent to their email.')) {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/admin/users/${id}/reset-password`, {
+            const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/users/${id}/reset-password`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${getAdminToken()}` }
             });
@@ -306,11 +340,10 @@ async function resetPassword(id) {
     }
 }
 
-// Confirm user email manually
 async function confirmEmail(id) {
     if (confirm('Confirm email for this user?')) {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/admin/users/${id}/confirm-email`, {
+            const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/users/${id}/confirm-email`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${getAdminToken()}` }
             });
@@ -335,7 +368,6 @@ async function confirmEmail(id) {
     }
 }
 
-// Create new user
 async function createUser() {
     const name = document.getElementById('create-user-name')?.value.trim();
     const username = document.getElementById('create-user-username')?.value.trim();
@@ -365,7 +397,7 @@ async function createUser() {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/auth/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -391,7 +423,6 @@ async function createUser() {
     }
 }
 
-// Users Page initialization
 function initUsersPage() {
     fetchUsers().then(renderUsers);
     document.getElementById('search-name')?.addEventListener('input', filterUsers);
@@ -410,24 +441,19 @@ function initUsersPage() {
     }
 }
 
-// Fetch all tasks
+// Tasks Page
 async function fetchTasks() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/tasks`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/tasks`, {
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
-        if (response.ok) {
-            const tasks = await response.json();
-            return tasks;
-        }
-        return [];
+        return response.ok ? await response.json() : [];
     } catch (err) {
         console.error('Error fetching tasks:', err);
         return [];
     }
 }
 
-// Render tasks in the table
 function renderTasks(tasks) {
     const tableBody = document.getElementById('tasks-table');
     if (tableBody) {
@@ -452,7 +478,6 @@ function renderTasks(tasks) {
     }
 }
 
-// Validate task form
 function validateTaskForm() {
     const title = document.getElementById('task-title')?.value.trim();
     const link = document.getElementById('task-link')?.value.trim();
@@ -478,10 +503,9 @@ function validateTaskForm() {
     return true;
 }
 
-// Archive task
 async function archiveTask(id) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/tasks/${id}/archive`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/tasks/${id}/archive`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
@@ -492,6 +516,8 @@ async function archiveTask(id) {
             notification.style.display = 'block';
             setTimeout(() => notification.style.display = 'none', 2000);
             fetchTasks().then(renderTasks);
+        } else {
+            throw new Error('Failed to archive task');
         }
     } catch (err) {
         const notification = document.getElementById('task-notification');
@@ -502,10 +528,9 @@ async function archiveTask(id) {
     }
 }
 
-// Unarchive task
 async function unarchiveTask(id) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/tasks/${id}/unarchive`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/tasks/${id}/unarchive`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
@@ -516,6 +541,8 @@ async function unarchiveTask(id) {
             notification.style.display = 'block';
             setTimeout(() => notification.style.display = 'none', 2000);
             fetchTasks().then(renderTasks);
+        } else {
+            throw new Error('Failed to unarchive task');
         }
     } catch (err) {
         const notification = document.getElementById('task-notification');
@@ -526,11 +553,10 @@ async function unarchiveTask(id) {
     }
 }
 
-// Delete task
 async function deleteTask(id) {
     if (confirm('Are you sure you want to delete this task?')) {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/admin/tasks/${id}`, {
+            const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/tasks/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${getAdminToken()}` }
             });
@@ -541,6 +567,8 @@ async function deleteTask(id) {
                 notification.style.display = 'block';
                 setTimeout(() => notification.style.display = 'none', 2000);
                 fetchTasks().then(renderTasks);
+            } else {
+                throw new Error('Failed to delete task');
             }
         } catch (err) {
             const notification = document.getElementById('task-notification');
@@ -552,7 +580,6 @@ async function deleteTask(id) {
     }
 }
 
-// Tasks Page initialization
 function initTasksPage() {
     fetchTasks().then(renderTasks);
     const taskForm = document.getElementById('task-form');
@@ -568,7 +595,7 @@ function initTasksPage() {
             const title = document.getElementById('task-title').value.trim();
             const link = document.getElementById('task-link').value.trim();
             try {
-                const response = await fetch(`${API_BASE_URL}/api/admin/tasks`, {
+                const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/tasks`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -602,60 +629,54 @@ function initTasksPage() {
     }
 }
 
-// Fetch all withdrawals
+// Withdrawals Page
 async function fetchWithdrawals() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/withdrawals`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/withdrawals`, {
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
-        if (response.ok) {
-            const withdrawals = await response.json();
-            return withdrawals;
-        }
-        return [];
+        return response.ok ? await response.json() : [];
     } catch (err) {
         console.error('Error fetching withdrawals:', err);
         return [];
     }
 }
 
-// Render withdrawals in the table
 function renderWithdrawals(withdrawals) {
-  const tableBody = document.getElementById('withdrawals-table');
-  if (tableBody) {
-    tableBody.innerHTML = '';
-    withdrawals.forEach((w) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${w.userId}</td>
-        <td>₦${w.amount.toLocaleString('en-NG')}</td>
-        <td>${new Date(w.date).toLocaleDateString()}</td>
-        <td>${w.status}</td>
-        <td>
-          <button class="btn btn-primary" onclick="viewUserDetails('${w.userId}')">View Details</button>
-          ${
-            w.status === 'pending'
-              ? `
-                <button class="btn btn-success" onclick="approveWithdrawal('${w._id}')">Approve</button>
-                <button class="btn btn-danger" onclick="declineWithdrawal('${w._id}')">Decline</button>
-              `
-              : w.status === 'approved'
-              ? `
-                <button class="btn btn-success" onclick="markAsPaid('${w._id}')">Complete</button>
-              `
-              : ''
-          }
-        </td>
-      `;
-      tableBody.appendChild(row);
-    });
-  }
+    const tableBody = document.getElementById('withdrawals-table');
+    if (tableBody) {
+        tableBody.innerHTML = '';
+        withdrawals.forEach((w) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${w.userId}</td>
+                <td>₦${w.amount.toLocaleString('en-NG')}</td>
+                <td>${new Date(w.date).toLocaleDateString()}</td>
+                <td>${w.status}</td>
+                <td>
+                    <button class="btn btn-primary" onclick="viewUserDetails('${w.userId}')">View Details</button>
+                    ${
+                        w.status === 'pending'
+                            ? `
+                            <button class="btn btn-success" onclick="approveWithdrawal('${w._id}')">Approve</button>
+                            <button class="btn btn-danger" onclick="declineWithdrawal('${w._id}')">Decline</button>
+                            `
+                            : w.status === 'approved'
+                            ? `
+                            <button class="btn btn-success" onclick="markAsPaid('${w._id}')">Complete</button>
+                            `
+                            : ''
+                    }
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
 }
 
-// Approve withdrawal
 async function approveWithdrawal(id) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/withdrawals/${id}/approve`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/withdrawals/${id}/approve`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
@@ -670,7 +691,7 @@ async function approveWithdrawal(id) {
             throw new Error('Failed to approve withdrawal');
         }
     } catch (err) {
-        const data = document.getElementById('withdrawal-notification');
+        const notification = document.getElementById('withdrawal-notification');
         notification.textContent = 'Error approving withdrawal';
         notification.classList.add('error');
         notification.style.display = 'block';
@@ -678,10 +699,9 @@ async function approveWithdrawal(id) {
     }
 }
 
-// Decline withdrawal
 async function declineWithdrawal(id) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/withdrawals/${id}/decline`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/withdrawals/${id}/decline`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
@@ -696,7 +716,7 @@ async function declineWithdrawal(id) {
             throw new Error('Failed to decline withdrawal');
         }
     } catch (err) {
-        const data = document.getElementById('withdrawal-notification');
+        const notification = document.getElementById('withdrawal-notification');
         notification.textContent = 'Error declining withdrawal';
         notification.classList.add('error');
         notification.style.display = 'block';
@@ -704,10 +724,9 @@ async function declineWithdrawal(id) {
     }
 }
 
-// Mark withdrawal as paid
 async function markAsPaid(id) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/withdrawals/${id}/paid`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/withdrawals/${id}/paid`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
@@ -722,7 +741,7 @@ async function markAsPaid(id) {
             throw new Error('Failed to mark as paid');
         }
     } catch (err) {
-        const data = document.getElementById('withdrawal-notification');
+        const notification = document.getElementById('withdrawal-notification');
         notification.textContent = 'Error marking withdrawal as paid';
         notification.classList.add('error');
         notification.style.display = 'block';
@@ -730,10 +749,9 @@ async function markAsPaid(id) {
     }
 }
 
-// View user details in modal
 async function viewUserDetails(userId) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/users/${userId}`, {
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
         const notification = document.getElementById('notification');
@@ -754,17 +772,15 @@ async function viewUserDetails(userId) {
     }
 }
 
-// Close user details modal
 function closeModal() {
     const modal = document.getElementById('user-details-modal');
     if (modal) modal.style.display = 'none';
 }
 
-// Export withdrawals to CSV
 async function exportToCSV() {
     const withdrawals = await fetchWithdrawals();
     const csvData = withdrawals.map(w => ({
-        User: w.user,
+        User: w.userId,
         Amount: w.amount,
         Date: new Date(w.date).toLocaleDateString(),
         Status: w.status
@@ -779,7 +795,6 @@ async function exportToCSV() {
     URL.revokeObjectURL(url);
 }
 
-// Withdrawals Page initialization
 function initWithdrawalsPage() {
     fetchWithdrawals().then(renderWithdrawals);
     const exportBtn = document.getElementById('export-csv-btn');
@@ -788,24 +803,19 @@ function initWithdrawalsPage() {
     }
 }
 
-// Fetch all referrals
+// Referrals Page
 async function fetchReferrals() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/referrals`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/referrals`, {
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
-        if (response.ok) {
-            const referrals = await response.json();
-            return referrals;
-        }
-        return [];
+        return response.ok ? await response.json() : [];
     } catch (err) {
         console.error('Error fetching referrals:', err);
         return [];
     }
 }
 
-// Render referrals in the table
 function renderReferrals(referrals) {
     const tableBody = document.getElementById('referrals-table');
     if (tableBody) {
@@ -823,7 +833,6 @@ function renderReferrals(referrals) {
     }
 }
 
-// Filter referrals based on search
 async function filterReferrals() {
     const searchUser = document.getElementById('search-user')?.value.toLowerCase() || '';
     const referrals = await fetchReferrals();
@@ -831,30 +840,24 @@ async function filterReferrals() {
     renderReferrals(filteredReferrals);
 }
 
-// Referrals Page initialization
 function initReferralsPage() {
     fetchReferrals().then(renderReferrals);
     document.getElementById('search-user')?.addEventListener('input', filterReferrals);
 }
 
-// Fetch all upgrades
+// Upgrades Page
 async function fetchUpgrades() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/upgrades`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/upgrades`, {
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
-        if (response.ok) {
-            const upgrades = await response.json();
-            return upgrades;
-        }
-        return [];
+        return response.ok ? await response.json() : [];
     } catch (err) {
         console.error('Error fetching upgrades:', err);
         return [];
     }
 }
 
-// Render upgrades in the table
 function renderUpgrades(upgrades) {
     const tableBody = document.getElementById('upgrades-table');
     if (tableBody) {
@@ -878,10 +881,9 @@ function renderUpgrades(upgrades) {
     }
 }
 
-// Approve upgrade
 async function approveUpgrade(id) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/upgrades/${id}/approve`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/upgrades/${id}/approve`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
@@ -904,10 +906,9 @@ async function approveUpgrade(id) {
     }
 }
 
-// Reject upgrade
 async function rejectUpgrade(id) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/upgrades/${id}/reject`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/upgrades/${id}/reject`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
@@ -930,29 +931,23 @@ async function rejectUpgrade(id) {
     }
 }
 
-// Upgrades Page initialization
 function initUpgradesPage() {
     fetchUpgrades().then(renderUpgrades);
 }
 
-// Fetch all admins
+// Admins Page
 async function fetchAdmins() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/admins`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/admins`, {
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
-        if (response.ok) {
-            const admins = await response.json();
-            return admins;
-        }
-        return [];
+        return response.ok ? await response.json() : [];
     } catch (err) {
         console.error('Error fetching admins:', err);
         return [];
     }
 }
 
-// Render admins in the table
 function renderAdmins(admins) {
     const tableBody = document.getElementById('admins-table');
     if (tableBody) {
@@ -968,7 +963,6 @@ function renderAdmins(admins) {
     }
 }
 
-// Admins Page initialization
 function initAdminsPage() {
     fetchAdmins().then(renderAdmins);
     const inviteForm = document.getElementById('invite-form');
@@ -990,7 +984,7 @@ function initAdminsPage() {
                 return;
             }
             try {
-                const response = await fetch(`${API_BASE_URL}/api/admin/invite`, {
+                const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/invite`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1026,7 +1020,7 @@ function initAdminsPage() {
     }
 }
 
-// Validate admin profile form
+// Profile Page
 function validateProfileForm() {
     const email = document.getElementById('admin-email')?.value.trim();
     const contact = document.getElementById('admin-contact')?.value.trim();
@@ -1052,7 +1046,6 @@ function validateProfileForm() {
     return true;
 }
 
-// Profile Page initialization
 function initProfilePage() {
     const profileForm = document.getElementById('profile-form');
     if (profileForm) {
@@ -1068,7 +1061,7 @@ function initProfilePage() {
             const password = document.getElementById('admin-password').value.trim();
             const contact = document.getElementById('admin-contact').value.trim();
             try {
-                const response = await fetch(`${API_BASE_URL}/api/admin/profile`, {
+                const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/profile`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1104,24 +1097,19 @@ function initProfilePage() {
     }
 }
 
-// Fetch email logs
+// Emails Page
 async function fetchEmailLogs() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/emails`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/emails`, {
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
-        if (response.ok) {
-            const logs = await response.json();
-            return logs;
-        }
-        return [];
+        return response.ok ? await response.json() : [];
     } catch (err) {
         console.error('Error fetching email logs:', err);
         return [];
     }
 }
 
-// Render email logs in the table
 function renderEmailLogs(logs) {
     const tableBody = document.getElementById('emails-table');
     if (tableBody) {
@@ -1138,7 +1126,6 @@ function renderEmailLogs(logs) {
     }
 }
 
-// Filter email logs by type
 async function filterEmails() {
     const filterType = document.getElementById('filter-email-type')?.value || '';
     const logs = await fetchEmailLogs();
@@ -1146,17 +1133,16 @@ async function filterEmails() {
     renderEmailLogs(filteredLogs);
 }
 
-// Emails Page initialization
 function initEmailsPage() {
     fetchEmailLogs().then(renderEmailLogs);
     document.getElementById('filter-email-type')?.addEventListener('change', filterEmails);
 }
 
-// Send notification to users
+// Notifications Page
 async function sendEmail() {
     try {
         const message = document.getElementById('notification-message')?.value.trim() || 'New task available!';
-        const response = await fetch(`${API_BASE_URL}/api/admin/notifications`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/notifications`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1182,7 +1168,6 @@ async function sendEmail() {
     }
 }
 
-// Notifications Page initialization
 function initNotificationsPage() {
     const notificationForm = document.getElementById('notification-form');
     if (notificationForm) {
@@ -1197,24 +1182,19 @@ function initNotificationsPage() {
     }
 }
 
-// Fetch pending email confirmations
+// Pending Confirmations Page
 async function fetchPendingConfirmations() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/users/pending-confirmations`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/users/pending-confirmations`, {
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
-        if (response.ok) {
-            const users = await response.json();
-            return users;
-        }
-        return [];
+        return response.ok ? await response.json() : [];
     } catch (err) {
         console.error('Error fetching pending confirmations:', err);
         return [];
     }
 }
 
-// Render pending email confirmations in the table
 function renderPendingConfirmations(users) {
     const tableBody = document.getElementById('confirmations-table');
     if (tableBody) {
@@ -1235,10 +1215,9 @@ function renderPendingConfirmations(users) {
     }
 }
 
-// Resend confirmation code
 async function resendConfirmation(userId) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/resend-confirmation`, {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/users/${userId}/resend-confirmation`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${getAdminToken()}` }
         });
@@ -1263,24 +1242,11 @@ async function resendConfirmation(userId) {
     }
 }
 
-// Pending Confirmations Page initialization
 function initPendingConfirmationsPage() {
     fetchPendingConfirmations().then(renderPendingConfirmations);
 }
 
-// Initialize WebSocket for real-time updates
-function initWebSocket() {
-    const socket = io(API_BASE_URL);
-    socket.on('connect', () => console.log('Connected to WebSocket'));
-    socket.on('dashboard-update', data => {
-        document.getElementById('total-users').textContent = data.totalUsers;
-        document.getElementById('total-earnings').textContent = `₦${data.totalEarnings.toLocaleString('en-NG')}`;
-        document.getElementById('task-completions').textContent = data.taskCompletions;
-        document.getElementById('pending-withdrawals').textContent = data.pendingWithdrawals;
-    });
-}
-
-// Initialize the appropriate page based on the data-page attribute
+// Initialize page
 document.addEventListener('DOMContentLoaded', () => {
     const page = document.body.getAttribute('data-page');
     if (['dashboard', 'users', 'tasks', 'withdrawals', 'referrals', 'upgrades', 'admins', 'profile', 'emails', 'notifications', 'pending-confirmations'].includes(page)) {
